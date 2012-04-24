@@ -2,7 +2,6 @@ import urllib
 import os
 import subprocess
 
-vlc_archive_117 = "http://download.videolan.org/pub/videolan/vlc/1.1.7/vlc-1.1.7.tar.bz2"
 vlc_archive_119 = "http://download.videolan.org/pub/videolan/vlc/1.1.9/vlc-1.1.9.tar.bz2"
 vlc_archive_200 = "http://download.videolan.org/pub/videolan/vlc/2.0.0/vlc-2.0.0.tar.xz"
 
@@ -26,6 +25,7 @@ def get_and_compile_vlc(vlc_archive_url):
         raise Exception, "Unsupported archive extension: %s" %extension
     print "Descompressing vlc source archive"
     run_shell_command("tar", tar_flags, file_name)
+    run_shell_command("rm", file_name)
     vlc_directory = file_name.split(".tar")[0]
     os.chdir(vlc_directory)
     run_shell_command("./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
@@ -37,7 +37,7 @@ def get_and_compile_vlc(vlc_archive_url):
     run_shell_command("make", "clean")
 
 def run():
-    run_shell_command("apt-get", "build-dep", "vlc")
+    run_shell_command("apt-get", "build-dep", "vlc", "-y")
     get_and_compile_vlc(vlc_archive_119)
 
 
