@@ -33,12 +33,12 @@ def get_and_compile_vlc(vlc_archive_url):
     run_shell_command("tar", tar_flags, file_name)
     run_shell_command("rm", file_name)
     os.chdir(vlc_directory)
-    run_shell_command("./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
+    run_shell_command("sudo", "./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
  "--enable-swscale", "--enable-mad", "--enable-libdvbpsi", "--enable-a52", "--enable-libmpeg2", "--enable-dvdnav",
  "--enable-faad", "--enable-vorbis", "--enable-ogg", "--enable-theora", "--enable-faac", "--enable-mkv", "--enable-freetype",
  "--enable-fribidi", "--enable-speex", "--enable-flac", "--enable-live555", "--with-live555-tree=/usr/lib/live",
  "--enable-caca", "--enable-skins", "--enable-skins2", "--enable-alsa", "--enable-qt4", "--enable-ncurses")
-    run_shell_command("make")
+    run_shell_command("sudo", "make")
     return os.path.join(os.path.expanduser("~"), vlc_directory)
 
 
