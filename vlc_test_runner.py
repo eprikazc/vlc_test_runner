@@ -51,7 +51,7 @@ def play_file_and_capture_os_stat(vlc_directory, test_media_file_name):
     cpu_data = []
     memory_data = []
 
-    p = subprocess.Popen(["./vlc", "--play-and-exit", test_media_file_name], cwd=vlc_directory)
+    p = subprocess.Popen(["./vlc", "--vout", "x11", "--play-and-exit", test_media_file_name], cwd=vlc_directory)
     while p.poll() is None:
         memory_data.append(psutil.phymem_usage().used)
         cpu_data.append(psutil.cpu_percent(1))
