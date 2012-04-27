@@ -24,16 +24,21 @@ def run_shell_command(*args):
     else:
         command = list(args)
     print "Running '%s'" %" ".join(command)
+
     subprocess.check_call(command)
 
 
-def get_and_compile_vlc(vlc_archive_url, code_coverage = False):
+def get_and_compile_vlc(vlc_archive_url, target_directory, code_coverage = False):
     file_name = vlc_archive_url.split('/')[-1]
     extension = file_name.split(".")[-1]
     vlc_directory = file_name.split(".tar")[0]
 
     os.chdir(PROJECT_DIR)
-    run_shell_command("wget", vlc_archive_url)
+    if not os.path.exists(target_directory):
+        os.mkdir(target_directory)
+    if not os.path.exists(file_name):
+        print "Downloading vlc archive"
+        run_shell_command("wget", vlc_archive_url)
     if extension == "xz":
         tar_flags = "xfJ"
     elif extension == "bz2":
@@ -41,24 +46,19 @@ def get_and_compile_vlc(vlc_archive_url, code_coverage = False):
     else:
         raise Exception, "Unsupported archive extension: %s" %extension
     print "Descompressing vlc source archive"
-    run_shell_command("tar", tar_flags, file_name)
-    run_shell_command("rm", file_name)
-    try:
-        os.chdir(vlc_directory)
-        configure_command = ["sudo", "./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
-     "--enable-swscale", "--enable-mad", "--enable-libdvbpsi", "--enable-a52", "--enable-libmpeg2", "--enable-dvdnav",
-     "--enable-faad", "--enable-vorbis", "--enable-ogg", "--enable-theora", "--enable-faac", "--enable-mkv", "--enable-freetype",
-     "--enable-fribidi", "--enable-speex", "--enable-flac", "--disable-live555", "--with-live555-tree=/usr/lib/live",
-     "--enable-caca", "--enable-skins", "--enable-skins2", "--enable-alsa", "--enable-qt4", "--enable-ncurses"]
-        if code_coverage:
-            configure_command.append("CFLAGS='-fprofile-arcs -ftest-coverage'")
-        run_shell_command(configure_command)
-        run_shell_command("sudo", "make")
-    except Exception:
-        os.chdir(PROJECT_DIR)
-        run_shell_command("sudo", "rm", "-rf", vlc_directory)
-        raise
-    return os.path.join(PROJECT_DIR, vlc_directory)
+    run_shell_command("tar", tar_flags, file_name, "-C", target_directory)
+
+    os.chdir(os.path.join(target_directory, vlc_directory))
+    configure_command = ["sudo", "./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
+ "--enable-swscale", "--enable-mad", "--enable-libdvbpsi", "--enable-a52", "--enable-libmpeg2", "--enable-dvdnav",
+ "--enable-faad", "--enable-vorbis", "--enable-ogg", "--enable-theora", "--enable-faac", "--enable-mkv", "--enable-freetype",
+ "--enable-fribidi", "--enable-speex", "--enable-flac", "--disable-live555", "--with-live555-tree=/usr/lib/live",
+ "--enable-caca", "--enable-skins", "--enable-skins2", "--enable-alsa", "--enable-qt4", "--enable-ncurses"]
+    if code_coverage:
+        configure_command.append("CFLAGS=-fprofile-arcs -ftest-coverage")
+    run_shell_command(configure_command)
+    run_shell_command("sudo", "make")
+    return os.path.join(PROJECT_DIR, target_directory, vlc_directory)
 
 
 def play_file_and_capture_os_stat(vlc_directory, test_media_file_name):
@@ -70,6 +70,13 @@ def play_file_and_capture_os_stat(vlc_directory, test_media_file_name):
         memory_data.append(psutil.phymem_usage().used)
         cpu_data.append(psutil.cpu_percent(1))
     return {"cpu_data": cpu_data, "memory_data": memory_data}
+
+
+def play_file_and_get_coverage_report(vlc_directory, test_media_file_name):
+    os.chdir(vlc_directory)
+    run_shell_command("./vlc", "--vout", "x11", "--play-and-exit", os.path.join(PROJECT_DIR, test_media_file_name))
+    run_shell_command("lcov", "--directory", vlc_directory, "-c", "--output-file", "coverage.info")
+    run_shell_command("genhtml", "coverage.info")
 
 
 def run():
@@ -87,33 +94,32 @@ def run():
     print "Installing build dependencies for vlc"
     run_shell_command("sudo", "apt-get", "build-dep", "vlc", "-y")
     run_shell_command("sudo", "apt-get", "install", "-y", "libxcb-shm0-dev", "libxcb-xv0-dev", "libxcb-keysyms1-dev",
-        "libxcb-randr0-dev", "libxcb-composite0-dev")
-    try:
-        vlc_119_dir = get_and_compile_vlc(VLC_ARCHIVE_119)
-        vlc_200_dir = get_and_compile_vlc(VLC_ARCHIVE_200)
-        vlc_119_stat = play_file_and_capture_os_stat(vlc_119_dir, os.path.join(PROJECT_DIR, test_media_file_name))
-        vlc_200_stat = play_file_and_capture_os_stat(vlc_200_dir, os.path.join(PROJECT_DIR, test_media_file_name))
-        pyplot.figure("CPU usage")
-        pyplot.plot(vlc_119_stat["cpu_data"], label="vlc_1.x")
-        pyplot.plot(vlc_200_stat["cpu_data"], label="vlc_2.0")
-        pyplot.legend()
-        cpu_usage_png = os.path.join(PROJECT_DIR, "cpu_usage.png")
-        print "Saving plot to %s" %cpu_usage_png
-        pyplot.savefig(cpu_usage_png)
-        pyplot.figure("Memory usage")
-        pyplot.plot(vlc_119_stat["memory_data"], label="vlc_1.x")
-        pyplot.plot(vlc_200_stat["memory_data"], label="vlc_2.0")
-        pyplot.legend()
-        mem_usage_png = os.path.join(PROJECT_DIR, "mem_usage.png")
-        print "Saving plot to %s" %mem_usage_png
-        pyplot.savefig(mem_usage_png)
-        pyplot.show()
-    finally:
-        print "Cleaning up"
-        if vlc_119_dir:
-            run_shell_command("sudo", "rm", "-rf", vlc_119_dir)
-        if vlc_200_dir:
-            run_shell_command("sudo", "rm", "-rf", vlc_200_dir)
+        "libxcb-randr0-dev", "libxcb-composite0-dev", "lcov")
+    regular_test_dir = "regular_test"
+    code_coverage_dir = "code_coverage_test"
+    vlc_119_dir = get_and_compile_vlc(VLC_ARCHIVE_119, regular_test_dir)
+    vlc_200_dir = get_and_compile_vlc(VLC_ARCHIVE_200, regular_test_dir)
+    vlc_119_stat = play_file_and_capture_os_stat(vlc_119_dir, os.path.join(PROJECT_DIR, test_media_file_name))
+    vlc_200_stat = play_file_and_capture_os_stat(vlc_200_dir, os.path.join(PROJECT_DIR, test_media_file_name))
+    pyplot.figure("CPU usage")
+    pyplot.plot(vlc_119_stat["cpu_data"], label="vlc_1.x")
+    pyplot.plot(vlc_200_stat["cpu_data"], label="vlc_2.0")
+    pyplot.legend()
+    cpu_usage_png = os.path.join(PROJECT_DIR, regular_test_dir, "cpu_usage.png")
+    print "Saving plot to %s" %cpu_usage_png
+    pyplot.savefig(cpu_usage_png)
+    pyplot.figure("Memory usage")
+    pyplot.plot(vlc_119_stat["memory_data"], label="vlc_1.x")
+    pyplot.plot(vlc_200_stat["memory_data"], label="vlc_2.0")
+    pyplot.legend()
+    mem_usage_png = os.path.join(PROJECT_DIR, regular_test_dir, "mem_usage.png")
+    print "Saving plot to %s" %mem_usage_png
+    pyplot.savefig(mem_usage_png)
+
+    vlc_119_cc_dir = get_and_compile_vlc(VLC_ARCHIVE_119, code_coverage_dir, True)
+    vlc_200_cc_dir = get_and_compile_vlc(VLC_ARCHIVE_200, code_coverage_dir, True)
+    play_file_and_get_coverage_report(vlc_119_cc_dir, test_media_file_name)
+    play_file_and_get_coverage_report(vlc_200_cc_dir, test_media_file_name)
 
 
 if __name__ == '__main__':
