@@ -11,7 +11,7 @@ TEST_MEDIA_FILE = "http://download.microsoft.com/download/6/8/f/68f212d7-f58d-45
 PROJECT_DIR = os.path.expanduser("~") 
 
 
-def run_shell_command(*args):
+def run_shell_command(*args, **kwargs):
     """
     Run specified shell command. Command and its arguments can be passed as positional arguments or as single list.
     Both following invocations are valid:
@@ -25,7 +25,7 @@ def run_shell_command(*args):
         command = list(args)
     print "Running '%s'" %" ".join(command)
 
-    subprocess.check_call(command)
+    subprocess.check_call(command, **kwargs)
 
 
 def get_and_compile_vlc(vlc_archive_url, target_directory, code_coverage = False):
@@ -77,6 +77,13 @@ def play_file_and_get_coverage_report(vlc_directory, test_media_file_name):
     run_shell_command("./vlc", "--vout", "x11", "--play-and-exit", os.path.join(PROJECT_DIR, test_media_file_name))
     run_shell_command("lcov", "--directory", vlc_directory, "-c", "--output-file", "coverage.info")
     run_shell_command("genhtml", "coverage.info")
+
+
+def play_file_under_valgrind(vlc_directory, test_media_file_name):
+    os.chdir(vlc_directory)
+    valgrind_log_file = open("valgrind.log", "a")
+    run_shell_command("valgrind", "--leak-check=yes", "./vlc", "--vout", "x11", "--play-and-exit", os.path.join(PROJECT_DIR, test_media_file_name),
+        stdout=valgrind_log_file, stderr=valgrind_log_file)
 
 
 def run():
