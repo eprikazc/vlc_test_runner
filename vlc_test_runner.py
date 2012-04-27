@@ -99,7 +99,7 @@ def run():
         run_shell_command("wget", TEST_MEDIA_FILE)
         print "test media file downloaded. Extracting it."
     if not os.path.exists(test_media_file_name):
-        run_shell_command("unzip", test_media_file_archive)
+        run_shell_command("unzip", test_media_archive)
 
     print "Installing build dependencies for vlc"
     run_shell_command("sudo", "apt-get", "build-dep", "vlc", "-y")
