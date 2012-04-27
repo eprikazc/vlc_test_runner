@@ -8,6 +8,7 @@ VLC_ARCHIVE_119 = "http://download.videolan.org/pub/videolan/vlc/1.1.9/vlc-1.1.9
 VLC_ARCHIVE_200 = "http://download.videolan.org/pub/videolan/vlc/2.0.0/vlc-2.0.0.tar.xz"
 
 TEST_MEDIA_FILE = "http://download.microsoft.com/download/6/8/f/68f212d7-f58d-4542-890d-65d7e790f2e0/The_Magic_of_Flight_720.exe"
+PROJECT_DIR = os.path.expanduser("~") 
 
 
 def run_shell_command(*args):
@@ -31,7 +32,7 @@ def get_and_compile_vlc(vlc_archive_url, code_coverage = False):
     extension = file_name.split(".")[-1]
     vlc_directory = file_name.split(".tar")[0]
 
-    os.chdir(os.path.expanduser("~"))
+    os.chdir(PROJECT_DIR)
     run_shell_command("wget", vlc_archive_url)
     if extension == "xz":
         tar_flags = "xfJ"
@@ -54,10 +55,10 @@ def get_and_compile_vlc(vlc_archive_url, code_coverage = False):
         run_shell_command(configure_command)
         run_shell_command("sudo", "make")
     except Exception:
-        os.chdir(os.path.expanduser("~"))
+        os.chdir(PROJECT_DIR)
         run_shell_command("sudo", "rm", "-rf", vlc_directory)
         raise
-    return os.path.join(os.path.expanduser("~"), vlc_directory)
+    return os.path.join(PROJECT_DIR, vlc_directory)
 
 
 def play_file_and_capture_os_stat(vlc_directory, test_media_file_name):
@@ -73,7 +74,7 @@ def play_file_and_capture_os_stat(vlc_directory, test_media_file_name):
 
 def run():
     vlc_119_dir = vlc_200_dir = None
-    os.chdir(os.path.expanduser("~"))
+    os.chdir(PROJECT_DIR)
     test_media_archive = TEST_MEDIA_FILE.split("/")[-1]
     test_media_file_name = test_media_archive.replace(".exe", ".wmv")
     if not os.path.exists(test_media_archive):
@@ -90,20 +91,20 @@ def run():
     try:
         vlc_119_dir = get_and_compile_vlc(VLC_ARCHIVE_119)
         vlc_200_dir = get_and_compile_vlc(VLC_ARCHIVE_200)
-        vlc_119_stat = play_file_and_capture_os_stat(vlc_119_dir, os.path.join(os.path.expanduser("~"), test_media_file_name))
-        vlc_200_stat = play_file_and_capture_os_stat(vlc_200_dir, os.path.join(os.path.expanduser("~"), test_media_file_name))
+        vlc_119_stat = play_file_and_capture_os_stat(vlc_119_dir, os.path.join(PROJECT_DIR, test_media_file_name))
+        vlc_200_stat = play_file_and_capture_os_stat(vlc_200_dir, os.path.join(PROJECT_DIR, test_media_file_name))
         pyplot.figure("CPU usage")
         pyplot.plot(vlc_119_stat["cpu_data"], label="vlc_1.x")
         pyplot.plot(vlc_200_stat["cpu_data"], label="vlc_2.0")
         pyplot.legend()
-        cpu_usage_png = os.path.join(os.path.expanduser("~"), "cpu_usage.png")
+        cpu_usage_png = os.path.join(PROJECT_DIR, "cpu_usage.png")
         print "Saving plot to %s" %cpu_usage_png
         pyplot.savefig(cpu_usage_png)
         pyplot.figure("Memory usage")
         pyplot.plot(vlc_119_stat["memory_data"], label="vlc_1.x")
         pyplot.plot(vlc_200_stat["memory_data"], label="vlc_2.0")
         pyplot.legend()
-        mem_usage_png = os.path.join(os.path.expanduser("~"), "mem_usage.png")
+        mem_usage_png = os.path.join(PROJECT_DIR, "mem_usage.png")
         print "Saving plot to %s" %mem_usage_png
         pyplot.savefig(mem_usage_png)
         pyplot.show()
