@@ -1,6 +1,7 @@
 vlc_test_runner
 ===============
 Prerequisite steps:
+
 0. Prepare target OS - Ubuntu 11.04
 
 1. Run "sudo apt-get build-dep matplotlib"
