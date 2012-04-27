@@ -94,7 +94,7 @@ def run():
     print "Installing build dependencies for vlc"
     run_shell_command("sudo", "apt-get", "build-dep", "vlc", "-y")
     run_shell_command("sudo", "apt-get", "install", "-y", "libxcb-shm0-dev", "libxcb-xv0-dev", "libxcb-keysyms1-dev",
-        "libxcb-randr0-dev", "libxcb-composite0-dev", "lcov")
+        "libxcb-randr0-dev", "libxcb-composite0-dev", "lcov", "valgrind")
     regular_test_dir = "regular_test"
     code_coverage_dir = "code_coverage_test"
     vlc_119_dir = get_and_compile_vlc(VLC_ARCHIVE_119, regular_test_dir)
