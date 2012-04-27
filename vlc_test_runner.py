@@ -11,12 +11,22 @@ TEST_MEDIA_FILE = "http://download.microsoft.com/download/6/8/f/68f212d7-f58d-45
 
 
 def run_shell_command(*args):
-    command = list(args)
+    """
+    Run specified shell command. Command and its arguments can be passed as positional arguments or as single list.
+    Both following invocations are valid:
+    run_shell_command("rm", "-rf", "note.txt")
+    and
+    run_shell_command(["rm", "-rf", "note.txt"])
+    """
+    if len(args) == 1 and isinstance(args[0], list):
+        command = args[0]
+    else:
+        command = list(args)
     print "Running '%s'" %" ".join(command)
     subprocess.check_call(command)
 
 
-def get_and_compile_vlc(vlc_archive_url):
+def get_and_compile_vlc(vlc_archive_url, code_coverage = False):
     file_name = vlc_archive_url.split('/')[-1]
     extension = file_name.split(".")[-1]
     vlc_directory = file_name.split(".tar")[0]
@@ -34,11 +44,14 @@ def get_and_compile_vlc(vlc_archive_url):
     run_shell_command("rm", file_name)
     try:
         os.chdir(vlc_directory)
-        run_shell_command("sudo", "./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
+        configure_command = ["sudo", "./configure", "--enable-x11", "--enable-xvideo", "--enable-sdl", "--enable-avcodec", "--enable-avformat",
      "--enable-swscale", "--enable-mad", "--enable-libdvbpsi", "--enable-a52", "--enable-libmpeg2", "--enable-dvdnav",
      "--enable-faad", "--enable-vorbis", "--enable-ogg", "--enable-theora", "--enable-faac", "--enable-mkv", "--enable-freetype",
      "--enable-fribidi", "--enable-speex", "--enable-flac", "--disable-live555", "--with-live555-tree=/usr/lib/live",
-     "--enable-caca", "--enable-skins", "--enable-skins2", "--enable-alsa", "--enable-qt4", "--enable-ncurses")
+     "--enable-caca", "--enable-skins", "--enable-skins2", "--enable-alsa", "--enable-qt4", "--enable-ncurses"]
+        if code_coverage:
+            configure_command.append("CFLAGS='-fprofile-arcs -ftest-coverage'")
+        run_shell_command(configure_command)
         run_shell_command("sudo", "make")
     except Exception:
         os.chdir(os.path.expanduser("~"))
