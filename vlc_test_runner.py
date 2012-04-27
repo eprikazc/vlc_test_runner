@@ -8,7 +8,10 @@ VLC_ARCHIVE_119 = "http://download.videolan.org/pub/videolan/vlc/1.1.9/vlc-1.1.9
 VLC_ARCHIVE_200 = "http://download.videolan.org/pub/videolan/vlc/2.0.0/vlc-2.0.0.tar.xz"
 
 TEST_MEDIA_FILE = "http://download.microsoft.com/download/6/8/f/68f212d7-f58d-4542-890d-65d7e790f2e0/The_Magic_of_Flight_720.exe"
-PROJECT_DIR = os.path.expanduser("~") 
+PROJECT_DIR = os.path.join(os.path.expanduser("~"), "vlc_tests")
+if not os.path.exists():
+    os.mkdir(PROJECT_DIR)
+
 
 
 def run_shell_command(*args, **kwargs):
