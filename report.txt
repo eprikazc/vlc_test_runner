@@ -1,0 +1,30 @@
+Tests were conducted on Ubuntu 11.04 with 512 MB of RAM, running in Oracle VM VirtualBox. Test compared vlc-1.1.9 and vlc-2.0.0. 
+
+MEMORY/CPU USAGE
+Memory usage during the tests is relatively similar: 430 - 510 MBs. According to graph average CPU usage is about 50%, though during the run with vlc-1.1.9 a couple of spikes were detected. I have done few other runs but have not noticed more spikes. These spikes seem to be related to memory de-allocation (see memory usage graph), and thus they are specific to OS, but not particular VLC version.
+
+CODE COVERAGE
+Code coverage data are similar for two VLC versions. Details are below.
+VLC-1.1.9:
+    Lines: 5.5%
+    Functions: 7.6%
+    Branches: 4.5%
+VLC-2.0.0:
+    Lines: 5.4%
+    Functions: 6.7%
+    Branches: 5.2%
+
+So, tests have shown no significant difference between vlc-1.1.9 and vlc-2.0.0.
+ 
+
+
+THINGS TO DO:
+1. Automatic generation of The Report. The Report would contain links to collected data: CPU and memory usage graphs, code coverage reports, valgrind logs. Also it would be nice to parse some basic info from code coverage report files (such as percentage of covered lines/functions/branches) and put it to The Report.
+
+2. Currently user have to enter password manually when script executes commands using sudo. It would be nice to pass password to the script (say, as command line argument) and then have script enter the password for you.
+
+3. Currently script works only under Ubuntu. It would be nice to add support for more OSes.
+
+4. Improve CPU and memory usage graphs. Range of Y-axis should be 0-100 (percents) and 0 - total memory (MB) accordingly,
+
+6. Currently graphs show CPU and memory usage by ALL processes. It would be really useful to detect how much vlc process contribute to this data. get_cpu_percent and get_memory_percent methods could be used fot this purpose (see http://code.google.com/p/psutil/wiki/Documentation)
