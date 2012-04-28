@@ -126,10 +126,16 @@ def run():
     print "Saving plot to %s" %mem_usage_png
     pyplot.savefig(mem_usage_png)
 
+    print "Running code coverage tests"
     vlc_119_cc_dir = get_and_compile_vlc(VLC_ARCHIVE_119, code_coverage_dir, True)
     vlc_200_cc_dir = get_and_compile_vlc(VLC_ARCHIVE_200, code_coverage_dir, True)
     play_file_and_get_coverage_report(vlc_119_cc_dir, test_media_file_name)
     play_file_and_get_coverage_report(vlc_200_cc_dir, test_media_file_name)
+
+    print "Running valgrind tests"
+    play_file_under_valgrind(vlc_119_dir, os.path.join(PROJECT_DIR, test_media_file_name))
+    play_file_under_valgrind(vlc_200_dir, os.path.join(PROJECT_DIR, test_media_file_name))
+
 
 
 if __name__ == '__main__':
